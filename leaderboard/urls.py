@@ -14,4 +14,5 @@ urlpatterns = [
     path('contact/', views.contact_view, name='contact'),
     path('api/', views.api_endpoint, name='api'),  
     path('api/register/', views.register_or_update_player, name='api-register'),
+    path("api/", views.api_home, name="api_home"),
 ]
