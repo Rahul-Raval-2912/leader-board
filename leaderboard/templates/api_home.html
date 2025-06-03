@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Leaderboard API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      gap: 40px;
+      padding: 20px;
+    }
+
+    .left,
+    .right {
+      width: 50%;
+    }
+
+    .json-box {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 300px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      padding: 5px;
+    }
+
+    button {
+      padding: 8px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    .message {
+      color: green;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="left">
+    <h2>All Players (JSON)</h2>
+    <div class="json-box">
+      <pre>
+{{ players|json_script:"player-data" }}
+{{ player_data|default:'' }}
+      </pre>
+    </div>
+  </div>
+
+  <div class="right">
+    <h2>Update or Add Score</h2>
+    {% if message %}
+    <div class="message">{{ message }}</div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <label for="name">Player Name:</label>
+      <input type="text" name="name" id="name" placeholder="e.g., Rahul Raval" required>
+
+      <label for="score">Score:</label>
+      <input type="number" name="score" id="score" required>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</body>
+
+</html>

@@ -112,3 +112,30 @@ def register_or_update_player(request):
 
     else:
         return JsonResponse({"error": "Invalid request method"}, status=405)
+    
+@csrf_exempt
+def api_home(request):
+    if request.method == "POST":
+        name = request.POST.get("name")
+        score = request.POST.get("score")
+
+        if not name or not score:
+            return JsonResponse({"error": "Name and score are required."}, status=400)
+
+        try:
+            score = int(score)
+        except ValueError:
+            return JsonResponse({"error": "Score must be an integer."}, status=400)
+
+        player, created = Player.objects.get_or_create(name=name)
+        player.score = score
+        player.save()
+
+        return render(request, 'api_home.html', {
+            "players": Player.objects.all(),
+            "message": f"{'Created' if created else 'Updated'} player '{name}' with score {score}"
+        })
+
+    return render(request, 'api_home.html', {
+        "players": Player.objects.all()
+    })
