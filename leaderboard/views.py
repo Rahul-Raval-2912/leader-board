@@ -6,6 +6,12 @@ from .models import Player, Score
 from .serializers import PlayerSerializer, ScoreSerializer
 import datetime
 from django.views.decorators.csrf import csrf_exempt
+from .serializers import ScoreSerializer
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+
 
 current_time = datetime.datetime.now()
 
@@ -126,3 +132,11 @@ def api_home(request):
 
     else:
         return JsonResponse({"error": "Method not allowed. Use GET or POST."}, status=405)
+    
+@api_view(['POST'])
+def add_score(request):
+    serializer = ScoreSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
