@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Top 10 Players</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 60%;
+        }
+        th, td {
+            padding: 10px 20px;
+            border: 1px solid #aaa;
+        }
+        th {
+            background-color: #222;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f3f3f3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Top 10 Players</h1>
+    <table>
+        <tr>
+            <th>Rank</th>
+            <th>Name</th>
+            <th>Score</th>
+        </tr>
+        {% for player in top_players %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ player.name }}</td>
+            <td>{{ player.score }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
