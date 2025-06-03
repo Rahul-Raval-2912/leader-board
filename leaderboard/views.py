@@ -133,10 +133,81 @@ def api_home(request):
     else:
         return JsonResponse({"error": "Method not allowed. Use GET or POST."}, status=405)
     
-@api_view(['POST'])
+@csrf_exempt
 def add_score(request):
-    serializer = ScoreSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            player_name = data.get('player_name')
+            new_score = int(data.get('score'))
+
+            if not player_name or new_score is None:
+                return JsonResponse({'error': 'Missing player_name or score'}, status=400)
+
+            player = Player.objects.filter(name=player_name).first()
+            if not player:
+                return JsonResponse({'error': 'Player not found'}, status=404)
+
+            score_obj, created = Score.objects.get_or_create(player=player)
+            if created or new_score > score_obj.points:
+                score_obj.points = new_score
+                score_obj.save()
+                return JsonResponse({'message': 'Score added/updated successfully'})
+            else:
+                return JsonResponse({'message': 'Score not updated (lower than existing)'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+    return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+@api_view(['POST'])
+def submit_score(request):
+    player_id = request.data.get('player')
+    new_points = request.data.get('points')
+
+    if not player_id or new_points is None:
+        return Response({'error': 'player and points are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        player = Player.objects.get(id=player_id)
+    except Player.DoesNotExist:
+        return Response({'error': 'Player not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    score, created = Score.objects.get_or_create(player=player)
+
+    if created or new_points > score.points:
+        score.points = new_points
+        score.save()
+        serializer = ScoreSerializer(score)
+        return Response({
+            'message': 'Score saved successfully.' if created else 'Score updated (new high score).',
+            'score': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    return Response({'message': 'Score not updated. Existing score is higher or equal.'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def main_api_add_score(request):
+    player_id = request.data.get('player')
+    new_points = request.data.get('points')
+
+    if not player_id or new_points is None:
+        return Response({'error': 'player and points are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        player = Player.objects.get(id=player_id)
+    except Player.DoesNotExist:
+        return Response({'error': 'Player not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    score, created = Score.objects.get_or_create(player=player)
+
+    if created or new_points > score.points:
+        score.points = new_points
+        score.save()
+        serializer = ScoreSerializer(score)
+        return Response({
+            'message': 'Score saved successfully.' if created else 'Score updated (new high score).',
+            'score': serializer.data
+        }, status=status.HTTP_200_OK)
+
+    return Response({'message': 'Score not updated. Existing score is higher or equal.'}, status=status.HTTP_200_OK)
