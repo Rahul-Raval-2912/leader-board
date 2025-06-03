@@ -57,11 +57,13 @@
   <div class="left">
     <h2>All Players (JSON)</h2>
     <div class="json-box">
-      <pre>
-{{ players|json_script:"player-data" }}
-{{ player_data|default:'' }}
-      </pre>
-    </div>
+  <pre>{{ players|safe|json_script:"player-data" }}</pre>
+  <script>
+    const data = JSON.parse(document.getElementById('player-data').textContent);
+    document.querySelector('.json-box').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+  </script>
+</div>
+
   </div>
 
   <div class="right">

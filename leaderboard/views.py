@@ -112,30 +112,35 @@ def register_or_update_player(request):
 
     else:
         return JsonResponse({"error": "Invalid request method"}, status=405)
-    
+def serialize_players():
+    return list(Player.objects.values("name", "score"))
+
 @csrf_exempt
 def api_home(request):
-    if request.method == "POST":
-        name = request.POST.get("name")
-        score = request.POST.get("score")
+    if request.method == "GET":
+        # You can return a list of players
+        players = list(Player.objects.values("name", "score"))
+        return JsonResponse(players, safe=False)
 
-        if not name or not score:
-            return JsonResponse({"error": "Name and score are required."}, status=400)
-
+    elif request.method == "POST":
         try:
-            score = int(score)
-        except ValueError:
-            return JsonResponse({"error": "Score must be an integer."}, status=400)
+            data = json.loads(request.body)
+            name = data.get("name")
+            score = data.get("score")
 
-        player, created = Player.objects.get_or_create(name=name)
-        player.score = score
-        player.save()
+            if not name or score is None:
+                return JsonResponse({"error": "Missing 'name' or 'score'"}, status=400)
 
-        return render(request, 'api_home.html', {
-            "players": Player.objects.all(),
-            "message": f"{'Created' if created else 'Updated'} player '{name}' with score {score}"
-        })
+            try:
+                player = Player.objects.get(name=name)
+                player.score = score
+                player.save()
+                return JsonResponse({"message": f"Score updated for {name}."})
+            except Player.DoesNotExist:
+                return JsonResponse({"error": f"Player '{name}' not found. Please register first."}, status=404)
 
-    return render(request, 'api_home.html', {
-        "players": Player.objects.all()
-    })
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
+
+    else:
+        return JsonResponse({"error": "Method not allowed. Use GET or POST."}, status=405)
