@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PlayerViewSet, ScoreViewSet, contact_view, leaderboard_view, main_api_add_score, submit_score
+from .views import PlayerViewSet, ScoreViewSet, contact_view, leaderboard_view
 from . import views
 
 router = DefaultRouter()
@@ -13,7 +13,7 @@ urlpatterns = [
     path('leaderboard/', views.leaderboard_view, name='leaderboard'),
     path('contact/', views.contact_view, name='contact'),
 
-    path('api/', views.api_home, name='api'),
+    path('api/', views.main_api_view, name='api'),
     path('api/register/', views.register_or_update_player, name='api-register'),
     path('add-score/', views.add_score, name='add_score'),  
 ]
