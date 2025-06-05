@@ -73,31 +73,41 @@ def api_register(request):
 
     return JsonResponse({"error": "Method not allowed. Use POST."}, status=405)
 
+
 @csrf_exempt
-def add_score_page(request):
+def add_score(request):
     if request.method == 'POST':
-        email = request.POST.get('player_email')
-        new_score = request.POST.get('score_value')
-
-        if not email or not new_score:
-            messages.error(request, "Email and Score are required.")
-            return render(request, 'add_score.html')
-
         try:
-            new_score = int(new_score)
-            player = Player.objects.filter(email=email).first()
+            email = request.POST.get('player_email')
+            new_score = int(request.POST.get('score_value'))
 
+            if not email or new_score is None:
+                return render(request, 'add_score.html', {'message': 'Missing email or score.'})
+
+            player = Player.objects.filter(email=email).first()
             if not player:
-                messages.error(request, "Player not found.")
+                return render(request, 'add_score.html', {'message': 'Player not found.'})
+
+            existing_scores = Score.objects.filter(player=player)
+            if existing_scores.exists():
+                best_score = max(score.points for score in existing_scores)
+                if new_score > best_score:
+                    Score.objects.create(player=player, points=new_score)
+                    message = f"✅ Score updated! Previous best was {best_score}."
+                else:
+                    message = f"⚠️ New score ({new_score}) is not better than your best ({best_score})."
             else:
                 Score.objects.create(player=player, points=new_score)
-                messages.success(request, f"✅ Score {new_score} added for {player.name}!")
-        except ValueError:
-            messages.error(request, "Score must be a number.")
+                message = "✅ Score added for the first time!"
+
+            return render(request, 'add_score.html', {'message': message})
+
         except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
+            return render(request, 'add_score.html', {'message': str(e)})
 
     return render(request, 'add_score.html')
+
+
 @csrf_exempt
 def api_home(request):
     if request.method == "GET":

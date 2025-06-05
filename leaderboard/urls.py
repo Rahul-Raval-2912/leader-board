@@ -15,5 +15,5 @@ urlpatterns = [
     path('api/', main_api_view, name='api'),
     path('api/register/', register_or_update_player, name='api-register'),
     path('api/leaderboard/', views.api_leaderboard, name='api_leaderboard'),
-    path('add/', views.add_score_page, name='add_score_page'),
+    path('add/', add_score, name='add_score'),
 ]
