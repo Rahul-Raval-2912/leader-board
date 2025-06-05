@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>🏠 Home - Leaderboard</title>
 </head>
+
 <body>
     <h1>Welcome to the Leaderboard System</h1>
 
     {% if message %}
-        <p style="color: green;"><strong>{{ message }}</strong></p>
+    <p style="color: green;"><strong>{{ message }}</strong></p>
     {% endif %}
 
     <p>📅 Current Year: {{ year.year }}</p>
@@ -18,9 +20,10 @@
     </a>
 
     <br><br>
-    <a href="{% url 'register' %}">Register New Player</a> |
-    <a href="{% url 'leaderboard' %}">View Leaderboard</a> |
+    <a href="{% url 'add_score' %}">Add New Score</a>
+    <a href="{% url 'register' %}">Register New Player</a>
+    <a href="{% url 'leaderboard' %}">View Leaderboard</a>
     <a href="{% url 'contact' %}">Contact Us</a>
-
 </body>
+
 </html>

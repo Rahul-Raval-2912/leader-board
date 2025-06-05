@@ -51,18 +51,40 @@
       font-weight: bold;
     }
   </style>
+  <script>
+    document.querySelector('form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const score = document.getElementById('score').value;
+      const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      try {
+        const response = await fetch('{% url "api_home" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify({ name, score })
+        });
+        const result = await response.json();
+        document.querySelector('.message').innerText = result.message || result.error;
+      } catch (error) {
+        document.querySelector('.message').innerText = 'Error: ' + error.message;
+      }
+    });
+  </script>
 </head>
 
 <body>
   <div class="left">
     <h2>All Players (JSON)</h2>
     <div class="json-box">
-  <pre>{{ players|safe|json_script:"player-data" }}</pre>
-  <script>
-    const data = JSON.parse(document.getElementById('player-data').textContent);
-    document.querySelector('.json-box').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
-  </script>
-</div>
+      <pre>{{ players|safe|json_script:"player-data" }}</pre>
+      <script>
+        const data = JSON.parse(document.getElementById('player-data').textContent);
+        document.querySelector('.json-box').innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+      </script>
+    </div>
 
   </div>
 

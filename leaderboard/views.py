@@ -107,34 +107,27 @@ def add_score(request):
 
     return render(request, 'add_score.html')
 
-
-@csrf_exempt
 def api_home(request):
     if request.method == "GET":
-        players = list(Player.objects.values("name", "score"))
+        players = list(Player.objects.values("name", "email"))
         return JsonResponse(players, safe=False)
-
     elif request.method == "POST":
         try:
             data = json.loads(request.body)
             name = data.get("name")
             score = data.get("score")
-
             if not name or score is None:
                 return JsonResponse({"error": "Missing 'name' or 'score'"}, status=400)
-
-            player, created = Player.objects.get_or_create(name=name)
-            player.score = score
-            player.save()
-
-            msg = "registered" if created else "updated"
-            return JsonResponse({"message": f"Player '{name}' score {msg}."}, status=201 if created else 200)
-
+            player, created = Player.objects.get_or_create(
+                name=name,
+                defaults={'email': f"{name.lower().replace(' ', '')}@example.com"}
+            )
+            Score.objects.create(player=player, points=score)
+            msg = "registered and score added" if created else "score added"
+            return JsonResponse({"message": f"Player '{name}' {msg}."}, status=201 if created else 200)
         except json.JSONDecodeError:
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
-
     return JsonResponse({"error": "Method not allowed. Use GET or POST."}, status=405)
-
 
 @csrf_exempt
 def register_or_update_player(request):
@@ -174,3 +167,21 @@ def api_leaderboard(request):
         for score in scores
     ]
     return Response(result)
+
+def register_player(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        if password1 != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'register.html')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, 'Email already registered.')
+            return render(request, 'register.html')
+        user = User.objects.create_user(username=username, email=email, password=password1)
+        Player.objects.create(name=username, email=email)
+        messages.success(request, 'Player registered successfully!')
+        return redirect('home')
+    return render(request, 'register.html')
