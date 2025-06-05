@@ -47,9 +47,13 @@
 </head>
 
 <body>
-    <h2>🏆 Top 10 Leaderboard</h2>
-    <table>
-        <thead>
+    <!-- leaderboard/templates/leaderboard.html -->
+    {% extends 'base.html' %}
+    {% block title %}Leaderboard{% endblock %}
+    {% block content %}
+    <h2 class="mb-4">🏆 Top 10 Leaderboard</h2>
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
             <tr>
                 <th>Rank</th>
                 <th>Player Name</th>
@@ -70,6 +74,7 @@
             {% endfor %}
         </tbody>
     </table>
+    {% endblock %}
 </body>
 
 </html>

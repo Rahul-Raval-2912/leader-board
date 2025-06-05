@@ -7,23 +7,20 @@
 </head>
 
 <body>
-    <h1>Welcome to the Leaderboard System</h1>
-
-    {% if message %}
-    <p style="color: green;"><strong>{{ message }}</strong></p>
-    {% endif %}
-
+    <!-- leaderboard/templates/home.html -->
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Welcome to the Leaderboard System</h1>
     <p>📅 Current Year: {{ year.year }}</p>
-
-    <a href="{% url 'add_score' %}">
-        <button>Add New Score</button>
-    </a>
-
-    <br><br>
-    <a href="{% url 'add_score' %}">Add New Score</a>
-    <a href="{% url 'register' %}">Register New Player</a>
-    <a href="{% url 'leaderboard' %}">View Leaderboard</a>
-    <a href="{% url 'contact' %}">Contact Us</a>
+    <div class="d-grid gap-2">
+        <a href="{% url 'add_score' %}" class="btn btn-primary">Add New Score</a>
+        <a href="{% url 'register' %}" class="btn btn-secondary">Register New Player</a>
+        <a href="{% url 'leaderboard' %}" class="btn btn-secondary">View Leaderboard</a>
+        <a href="{% url 'contact' %}" class="btn btn-secondary">Contact Us</a>
+        <a href="{% url 'api' %}" class="btn btn-secondary">API</a>
+    </div>
+{% endblock %}
 </body>
 
 </html>

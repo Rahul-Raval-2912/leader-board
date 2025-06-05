@@ -1,27 +1,33 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <title>Add Score</title>
 </head>
-<body>
-    <h2>🎯 Add Score for Player</h2>
-    
-    {% if message %}
-        <p><strong>{{ message }}</strong></p>
-    {% endif %}
 
+<body>
+    <!-- leaderboard/templates/add_score.html -->
+    {% extends 'base.html' %}
+    {% block title %}Add Score{% endblock %}
+    {% block content %}
+    <h2 class="mb-4">🎯 Add Score for Player</h2>
     <form method="POST">
         {% csrf_token %}
-        <label>Email:</label>
-        <input type="email" name="player_email" required><br><br>
-
-        <label>Score:</label>
-        <input type="number" name="score_value" required><br><br>
-
-        <button type="submit">Submit Score</button>
+        <div class="mb-3">
+            <label for="player_email" class="form-label">Email:</label>
+            <input type="email" name="player_email" id="player_email" class="form-control"
+                placeholder="Enter player email" required>
+        </div>
+        <div class="mb-3">
+            <label for="score_value" class="form-label">Score:</label>
+            <input type="number" name="score_value" id="score_value" class="form-control" placeholder="Enter score"
+                required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Score</button>
     </form>
-
-    <p><a href="/">Back to Home</a></p>
+    <p class="mt-3"><a href="{% url 'home' %}" class="btn btn-link">Back to Home</a></p>
+    {% endblock %}
 </body>
+
 </html>
