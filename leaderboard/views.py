@@ -1,5 +1,6 @@
 import json
 import datetime
+from pyexpat.errors import messages
 
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -26,8 +27,18 @@ class ScoreViewSet(viewsets.ModelViewSet):
 # HTML Views
 def leaderboard_view(request):
     top_scores = Score.objects.select_related('player').order_by('-points')[:10]
-    return render(request, 'leaderboard/leaderboard.html', {'top_scores': top_scores})
 
+    leaderboard_data = []
+    for index, score in enumerate(top_scores, start=1):
+        leaderboard_data.append({
+            'rank': index,
+            'name': score.player.name,
+            'points': score.points,
+        })
+
+    return render(request, 'leaderboard/leaderboard.html', {
+        'leaderboard': leaderboard_data
+    })
 
 def home(request):
     return render(request, 'home.html', {'year': current_time})
@@ -63,38 +74,30 @@ def api_register(request):
     return JsonResponse({"error": "Method not allowed. Use POST."}, status=405)
 
 @csrf_exempt
-def add_score(request):
+def add_score_page(request):
     if request.method == 'POST':
+        email = request.POST.get('player_email')
+        new_score = request.POST.get('score_value')
+
+        if not email or not new_score:
+            messages.error(request, "Email and Score are required.")
+            return render(request, 'add_score.html')
+
         try:
-            email = request.POST.get('player_email')
-            new_score = int(request.POST.get('score_value'))
-
-            if not email or new_score is None:
-                return render(request, 'home.html', {'message': 'Missing email or score.'})
-
+            new_score = int(new_score)
             player = Player.objects.filter(email=email).first()
+
             if not player:
-                return render(request, 'home.html', {'message': 'Player not found.'})
-
-            existing_scores = Score.objects.filter(player=player)
-            if existing_scores.exists():
-                best_score = max(score.score for score in existing_scores)
-                if new_score > best_score:
-                    Score.objects.create(player=player, score=new_score, timestamp=datetime.datetime.now())
-                    message = f"✅ Score updated! Previous best was {best_score}."
-                else:
-                    message = f"⚠️ New score ({new_score}) is not better than your best score ({best_score})."
+                messages.error(request, "Player not found.")
             else:
-                Score.objects.create(player=player, score=new_score, timestamp=datetime.datetime.now())
-                message = "✅ Score added for the first time!"
-
-            return render(request, 'home.html', {'message': message})
-
+                Score.objects.create(player=player, points=new_score)
+                messages.success(request, f"✅ Score {new_score} added for {player.name}!")
+        except ValueError:
+            messages.error(request, "Score must be a number.")
         except Exception as e:
-            return render(request, 'home.html', {'message': str(e)})
+            messages.error(request, f"Error: {str(e)}")
 
-    return render(request, 'home.html', {'message': 'Only POST method allowed'})
-
+    return render(request, 'add_score.html')
 @csrf_exempt
 def api_home(request):
     if request.method == "GET":
@@ -152,3 +155,12 @@ def register_or_update_player(request):
 @csrf_exempt
 def main_api_view(request):
     return redirect('home')
+
+@api_view(['GET'])
+def api_leaderboard(request):
+    scores = Score.objects.select_related('player').order_by('-points')[:10]
+    result = [
+        {"player_name": score.player.name, "points": score.points}
+        for score in scores
+    ]
+    return Response(result)

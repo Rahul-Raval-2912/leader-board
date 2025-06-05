@@ -2,50 +2,55 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Top 10 Players</title>
+    <title>Leaderboard</title>
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        h2 {
             text-align: center;
+            margin-bottom: 30px;
         }
         table {
+            width: 60%;
             margin: 0 auto;
             border-collapse: collapse;
-            width: 60%;
+            border: 1px solid #ccc;
         }
         th, td {
-            padding: 10px 20px;
-            border: 1px solid #aaa;
-        }
-        th {
-            background-color: #222;
-            color: #fff;
+            padding: 12px;
+            border: 1px solid #999;
+            text-align: center;
         }
         tr:nth-child(even) {
-            background-color: #f3f3f3;
+            background: #f2f2f2;
         }
     </style>
 </head>
 <body>
-    <h1>Top 10 Players</h1>
-    <table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Rank</th>
-            <th>Player Name</th>
-            <th>Score</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for score in top_scores %}
-        <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ score.player.name }}</td>
-            <td>{{ score.points }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+    <h2>🏆 Top 10 Leaderboard</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Player Name</th>
+                <th>Points</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for player in leaderboard %}
+                <tr>
+                    <td>{{ player.rank }}</td>
+                    <td>{{ player.name }}</td>
+                    <td>{{ player.points }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="3">No scores available yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
