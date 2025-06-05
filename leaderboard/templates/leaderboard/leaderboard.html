@@ -28,19 +28,24 @@
 </head>
 <body>
     <h1>Top 10 Players</h1>
-    <table>
+    <table class="table table-striped">
+    <thead>
         <tr>
             <th>Rank</th>
-            <th>Name</th>
+            <th>Player Name</th>
             <th>Score</th>
         </tr>
-        {% for player in top_players %}
+    </thead>
+    <tbody>
+        {% for score in top_scores %}
         <tr>
             <td>{{ forloop.counter }}</td>
-            <td>{{ player.name }}</td>
-            <td>{{ player.score }}</td>
+            <td>{{ score.player.name }}</td>
+            <td>{{ score.points }}</td>
         </tr>
         {% endfor %}
-    </table>
+    </tbody>
+</table>
+
 </body>
 </html>

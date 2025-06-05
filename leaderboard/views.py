@@ -12,7 +12,6 @@ from rest_framework.response import Response
 from .models import Player, Score
 from .serializers import PlayerSerializer, ScoreSerializer
 
-
 current_time = datetime.datetime.now()
 
 # ViewSets for Django Rest Framework API
@@ -26,8 +25,9 @@ class ScoreViewSet(viewsets.ModelViewSet):
 
 # HTML Views
 def leaderboard_view(request):
-    top_players = Player.objects.order_by('-score')[:10]
-    return render(request, 'leaderboard/leaderboard.html', {'top_players': top_players})
+    top_scores = Score.objects.select_related('player').order_by('-points')[:10]
+    return render(request, 'leaderboard/leaderboard.html', {'top_scores': top_scores})
+
 
 def home(request):
     return render(request, 'home.html', {'year': current_time})
@@ -66,29 +66,34 @@ def api_register(request):
 def add_score(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
-            player_name = data.get('player_name')
-            new_score = int(data.get('score'))
+            email = request.POST.get('player_email')
+            new_score = int(request.POST.get('score_value'))
 
-            if not player_name or new_score is None:
-                return JsonResponse({'error': 'Missing player_name or score'}, status=400)
+            if not email or new_score is None:
+                return render(request, 'home.html', {'message': 'Missing email or score.'})
 
-            player = Player.objects.filter(name=player_name).first()
+            player = Player.objects.filter(email=email).first()
             if not player:
-                return JsonResponse({'error': 'Player not found'}, status=404)
+                return render(request, 'home.html', {'message': 'Player not found.'})
 
-            score_obj, created = Score.objects.get_or_create(player=player)
-            if created or new_score > score_obj.points:
-                score_obj.points = new_score
-                score_obj.save()
-                return JsonResponse({'message': 'Score added/updated successfully'})
+            existing_scores = Score.objects.filter(player=player)
+            if existing_scores.exists():
+                best_score = max(score.score for score in existing_scores)
+                if new_score > best_score:
+                    Score.objects.create(player=player, score=new_score, timestamp=datetime.datetime.now())
+                    message = f"✅ Score updated! Previous best was {best_score}."
+                else:
+                    message = f"⚠️ New score ({new_score}) is not better than your best score ({best_score})."
             else:
-                return JsonResponse({'message': 'Score not updated (lower than existing)'})
+                Score.objects.create(player=player, score=new_score, timestamp=datetime.datetime.now())
+                message = "✅ Score added for the first time!"
 
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            return render(request, 'home.html', {'message': message})
 
-    return JsonResponse({'error': 'Only POST method allowed'}, status=405)
+        except Exception as e:
+            return render(request, 'home.html', {'message': str(e)})
+
+    return render(request, 'home.html', {'message': 'Only POST method allowed'})
 
 @csrf_exempt
 def api_home(request):
@@ -116,7 +121,6 @@ def api_home(request):
             return JsonResponse({"error": "Invalid JSON format"}, status=400)
 
     return JsonResponse({"error": "Method not allowed. Use GET or POST."}, status=405)
-
 
 
 @csrf_exempt
@@ -147,32 +151,4 @@ def register_or_update_player(request):
 
 @csrf_exempt
 def main_api_view(request):
-    message = None
-
-    if request.method == 'POST':
-        action = request.POST.get('action')
-
-        if action == 'add_score':
-            email = request.POST.get('player_email')
-            new_score = int(request.POST.get('score_value'))
-
-            try:
-                player = Player.objects.get(email=email)
-                existing_scores = Score.objects.filter(player=player)
-
-                if existing_scores.exists():
-                    best_score = max(score.score for score in existing_scores)
-
-                    if new_score > best_score:
-                        Score.objects.create(player=player, score=new_score, timestamp=timezone.now())
-                        message = f"✅ Score updated! Previous best was {best_score}."
-                    else:
-                        message = f"⚠️ New score ({new_score}) is not better than your best score ({best_score})."
-                else:
-                    Score.objects.create(player=player, score=new_score, timestamp=timezone.now())
-                    message = "✅ Score added for the first time!"
-
-            except Player.DoesNotExist:
-                message = "❌ Player with this email not found."
-
-    return render(request, 'home.html', {'message': message})
+    return redirect('home')
