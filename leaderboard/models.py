@@ -10,7 +10,7 @@ class Player(models.Model):
 class Score(models.Model):
     player = models.ForeignKey(Player, on_delete=models.CASCADE)
     points = models.IntegerField(default=0)
-    date = models.DateTimeField(auto_now=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.player.name} - {self.points}"
